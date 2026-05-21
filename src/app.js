@@ -1,7 +1,3 @@
-// ══════════════════════════════════════════════════════════════════════════════
-// ATLAS — Orquestador principal
-// ══════════════════════════════════════════════════════════════════════════════
-
 import { BLOQUES } from './config/feeds.js';
 import { SETTINGS } from './config/settings.js';
 import { fetchFeed } from './core/fetcher.js';
@@ -9,26 +5,18 @@ import { parseXml } from './core/parser.js';
 import { tieneRuido, matchKeywords, dedupByUrl, sortByFecha, sortByFuente } from './core/filters.js';
 import { dedupSemantico } from './core/deduper.js';
 import { renderMasthead } from './ui/masthead.js';
-import { renderSubnav } from './ui/subnav.js';
-import { renderFilterBar } from './ui/filterbar.js';
-import { renderArticleList } from './ui/articlelist.js';
-import { renderAside } from './ui/aside.js';
-import { updateStatusBar } from './ui/statusbar.js';
+import { renderSubnav, renderFilterBar, renderArticleList, renderAside, updateStatusBar } from './ui/components.js';
 
-// ── Estado global ─────────────────────────────────────────────────────────────
 const STATE = {
   bloqueActivo: 'argentina',
   seccionActiva: 'economia',
   sortMode: 'fecha',
   fuentesOcultas: new Set(),
-  articulos: {},        // { 'argentina.economia': [...] }
-  loading: new Set(),   // feeds en vuelo
-  errors: new Map(),    // feedUrl → error
+  articulos: {},
   totalFeeds: 0,
   feedsOk: 0,
 };
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
 export async function init() {
   renderMasthead(STATE, { onBloqueChange, onRefresh });
   renderSubnav(STATE, { onSeccionChange });
@@ -45,19 +33,15 @@ function updateFecha() {
   });
 }
 
-// ── Navegación ────────────────────────────────────────────────────────────────
 function onBloqueChange(bloqueId) {
   STATE.bloqueActivo = bloqueId;
-  document.querySelectorAll('.bloque-section').forEach(el => {
-    el.style.display = el.dataset.bloque === bloqueId ? 'block' : 'none';
-  });
   document.querySelectorAll('[data-bloque-tab]').forEach(el => {
     el.classList.toggle('active', el.dataset.bloqueTab === bloqueId);
   });
   const bloque = BLOQUES[bloqueId];
   if (bloque) {
-    const primeraSeccion = Object.keys(bloque.secciones)[0];
-    onSeccionChange(primeraSeccion);
+    const primera = Object.keys(bloque.secciones)[0];
+    onSeccionChange(primera);
   }
 }
 
@@ -75,22 +59,18 @@ function onSeccionChange(seccionId) {
 }
 
 function onRefresh() {
+  const key = `${STATE.bloqueActivo}.${STATE.seccionActiva}`;
+  delete STATE.articulos[key];
   loadSeccion(STATE.bloqueActivo, STATE.seccionActiva, true);
 }
 
-// ── Carga de feeds ────────────────────────────────────────────────────────────
-async function loadSeccion(bloqueId, seccionId, forzar = false) {
+async function loadSeccion(bloqueId, seccionId) {
   const bloque = BLOQUES[bloqueId];
   if (!bloque) return;
   const seccion = bloque.secciones[seccionId];
   if (!seccion) return;
 
   const key = `${bloqueId}.${seccionId}`;
-  if (STATE.articulos[key] && !forzar) {
-    renderSeccion();
-    return;
-  }
-
   showLoading();
   updateStatusBar(STATE, 'Cargando...');
 
@@ -101,13 +81,8 @@ async function loadSeccion(bloqueId, seccionId, forzar = false) {
   const results = await Promise.allSettled(promises);
   let todos = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
 
-  // Dedup por URL
   todos = dedupByUrl(todos);
-
-  // Dedup semántico
   todos = dedupSemantico(todos);
-
-  // Ordenar
   todos = sortByFecha(todos);
 
   STATE.articulos[key] = todos;
@@ -119,8 +94,8 @@ async function loadSeccion(bloqueId, seccionId, forzar = false) {
 }
 
 async function loadOneFeed(feedCfg, seccion) {
-  const url = typeof feedCfg === 'string' ? feedCfg : feedCfg.url;
-  const fuente = typeof feedCfg === 'string' ? url : feedCfg.fuente;
+  const url = feedCfg.url;
+  const fuente = feedCfg.fuente;
   const necesitaFiltro = feedCfg.filtro ?? (seccion.modo === 'filtrado');
   const esProvincial = feedCfg.filtro === true;
 
@@ -136,7 +111,6 @@ async function loadOneFeed(feedCfg, seccion) {
   });
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function showLoading() {
   const list = document.getElementById('atlas-article-list');
   if (list) list.innerHTML = '<div class="loading-state">Cargando<span class="loading-dots"></span></div>';
@@ -145,16 +119,8 @@ function showLoading() {
 function renderSeccion() {
   const key = `${STATE.bloqueActivo}.${STATE.seccionActiva}`;
   let articulos = STATE.articulos[key] || [];
-
-  // Aplicar fuentes ocultas
   const visibles = articulos.filter(a => !STATE.fuentesOcultas.has(a.fuente));
-
-  // Aplicar orden
-  const ordenados = STATE.sortMode === 'fuente'
-    ? sortByFuente(visibles)
-    : sortByFecha(visibles);
-
-  // Fuentes únicas para filter bar
+  const ordenados = STATE.sortMode === 'fuente' ? sortByFuente(visibles) : sortByFecha(visibles);
   const fuentes = [...new Set(articulos.map(a => a.fuente))];
 
   renderFilterBar(fuentes, STATE, {
@@ -171,24 +137,19 @@ function renderSeccion() {
 
   renderArticleList(ordenados.slice(0, SETTINGS.MAX_ARTICLES_DISPLAY));
 
-  // Aside: otras secciones del mismo bloque
   const bloque = BLOQUES[STATE.bloqueActivo];
-  const otrasSecciones = Object.values(bloque.secciones)
-    .filter(s => s.id !== STATE.seccionActiva);
-  renderAside(otrasSecciones, STATE.articulos, STATE.bloqueActivo, onSeccionChange);
+  const otras = Object.values(bloque.secciones).filter(s => s.id !== STATE.seccionActiva);
+  renderAside(otras, STATE.articulos, STATE.bloqueActivo, onSeccionChange);
 
-  // Count
   const countEl = document.getElementById('atlas-seccion-count');
   if (countEl) countEl.textContent = `${ordenados.length} notas`;
 }
 
-// ── Auto-refresh ──────────────────────────────────────────────────────────────
 function scheduleRefresh() {
   setInterval(() => {
-    // Limpiar cache de la sección activa
     const key = `${STATE.bloqueActivo}.${STATE.seccionActiva}`;
     delete STATE.articulos[key];
-    loadSeccion(STATE.bloqueActivo, STATE.seccionActiva, true);
+    loadSeccion(STATE.bloqueActivo, STATE.seccionActiva);
     updateFecha();
   }, SETTINGS.REFRESH_INTERVAL_MS);
 }
