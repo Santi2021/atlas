@@ -4,10 +4,10 @@
 
 export const SETTINGS = {
   // Proxy CORS para RSS (allorigins es gratuito y sin límite razonable)
-  PROXY: 'https://api.allorigins.win/raw?url=',
+  PROXY: '/api/proxy?url=',
 
   // Proxy alternativo si el principal falla
-  PROXY_FALLBACK: 'https://corsproxy.io/?',
+  PROXY_FALLBACK: '/api/proxy?url=',
 
   // Refresh automático cada 15 minutos
   REFRESH_INTERVAL_MS: 15 * 60 * 1000,
