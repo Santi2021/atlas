@@ -1,0 +1,79 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   ATLAS — Base: variables, reset, tipografía
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@400;500&display=swap');
+
+:root {
+  --ink:       #1a1a18;
+  --ink-2:     #3d3d38;
+  --ink-3:     #7a7a72;
+  --ink-4:     #b0afa6;
+  --paper:     #faf8f3;
+  --paper-2:   #f2efe8;
+  --paper-3:   #e8e4da;
+  --rule:      #d4d0c8;
+  --accent:    #1a3a5c;
+  --accent-2:  #c0392b;
+  --serif:     'Playfair Display', Georgia, serif;
+  --body:      'Source Serif 4', Georgia, serif;
+  --sans:      'DM Sans', system-ui, sans-serif;
+  --max-w:     1140px;
+  --pad-h:     32px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 15px; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  line-height: 1.7;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+select { font-family: var(--sans); }
+
+/* ── Tipografía ── */
+.t-serif   { font-family: var(--serif); }
+.t-body    { font-family: var(--body); }
+.t-sans    { font-family: var(--sans); }
+.t-label   { font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; }
+.t-muted   { color: var(--ink-3); }
+.t-faint   { color: var(--ink-4); }
+
+/* ── Loading ── */
+.loading-state {
+  padding: 48px 0;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-4);
+  letter-spacing: 1px;
+}
+
+.loading-dots::after {
+  content: '';
+  animation: ldots 1.4s steps(4, end) infinite;
+}
+
+@keyframes ldots {
+  0%,100% { content: ''; }
+  25%      { content: '.'; }
+  50%      { content: '..'; }
+  75%      { content: '...'; }
+}
+
+.empty-state {
+  padding: 40px 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink-4);
+  font-style: italic;
+}

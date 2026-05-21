@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Atlas — Inteligencia editorial. Agregador de noticias curado para Argentina y el mundo.">
+  <title>Atlas</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+
+  <!-- ══ MASTHEAD ══ -->
+  <header id="atlas-masthead"></header>
+
+  <!-- ══ MAIN ══ -->
+  <main class="page-body">
+
+    <div class="seccion-header">
+      <div class="seccion-nombre" id="atlas-seccion-nombre">Economía & Mercados</div>
+      <div id="atlas-seccion-count"></div>
+    </div>
+
+    <nav id="atlas-subnav"></nav>
+
+    <div class="two-col">
+      <div>
+        <div id="atlas-filterbar"></div>
+        <div id="atlas-article-list">
+          <div class="loading-state">Iniciando Atlas<span class="loading-dots"></span></div>
+        </div>
+      </div>
+      <aside id="atlas-aside"></aside>
+    </div>
+
+  </main>
+
+  <!-- ══ STATUS BAR ══ -->
+  <div id="atlas-statusbar">
+    <span id="atlas-status">Iniciando...</span>
+    <span id="atlas-status-ts"></span>
+    <span class="status-brand">ATLAS · v1.0</span>
+  </div>
+
+  <!-- ══ APP ══ -->
+  <script type="module">
+    import { init } from '/src/app.js';
+    init();
+  </script>
+
+</body>
+</html>
